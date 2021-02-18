@@ -23,7 +23,7 @@ options = Options()
 options.add_argument("--lang=en")
 driver = webdriver.Edge(EdgeChromiumDriverManager().install())
 
-url = "https://www.google.it/maps/place/Pantheon/@41.8986108,12.4746842,17z/data=!3m1!4b1!4m7!3m6!1s0x132f604f678640a9:0xcad165fa2036ce2c!8m2!3d41.8986108!4d12.4768729!9m1!1b1"
+url = "https://www.google.com/travel/hotels/deerhurst%20resort/entity/CgoI6fnlocXKyPgPEAE/reviews?g2lb=2502548%2C4258168%2C4271060%2C4306835%2C4317915%2C4322823%2C4328159%2C4330862%2C4371334%2C4401769%2C4419364%2C4424916%2C4429191%2C4433754%2C4435907%2C4436127%2C4441383%2C4443999%2C4270859%2C4284970%2C4412693&hl=en&gl=ca&un=1&q=deerhurst%20resort&rp=EOn55aHFysj4DxDp-eWhxcrI-A84AkAASAHAAQI&ictx=1&utm_campaign=sharing&utm_medium=link&utm_source=htls&ved=0CAAQ5JsGahcKEwiglLTVt-vuAhUAAAAAHQAAAAAQAg&ts=CAESABogCgIaABIaEhQKBwjlDxADGAESBwjlDxADGAIYATICEAAqCQoFOgNDQUQaAA"
 driver.get(url)
 
 wait = WebDriverWait(driver, 10)
