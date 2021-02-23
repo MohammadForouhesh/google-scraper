@@ -199,7 +199,6 @@ class GoogleMapsScraper:
     # expand review description
     def __expand_reviews(self):
         # use XPath to load complete reviews
-        # links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(('//button[@class=\'section-expand-review blue-link\']')))
         while True:
             try:
                 links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
@@ -207,14 +206,6 @@ class GoogleMapsScraper:
                 links.click()
             except:
                 break;
-        
-# =============================================================================
-#         except Exception as e:
-#             print(colored(e, 'red'))
-#             links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[@class=\'section-expand-review blue-link\']")))
-#             links.click()
-#             time.sleep(5)
-# =============================================================================
 
     # load more reviews
     def more_reviews(self):
