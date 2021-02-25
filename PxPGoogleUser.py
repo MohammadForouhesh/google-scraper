@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Feb 22 14:50:15 2021
+Created on Wed Feb 24 23:36:58 2021
 
 @author: Mohammad.FT
 """
@@ -29,7 +29,7 @@ MAX_WAIT = 10
 MAX_RETRY = 5
 MAX_SCROLLS = 40
 
-class GoogleMapsScraper:
+class GoogleUserScraper:
     def __init__(self, debug=False):
         self.debug = debug
         self.driver = self.__get_driver()
@@ -47,46 +47,34 @@ class GoogleMapsScraper:
 
         return True
 
-    def sort_by(self, url, ind):
-        self.driver.get(url)
-        wait = WebDriverWait(self.driver, MAX_WAIT)
-
-        # open dropdown menu
-        clicked = False
-        tries = 0
-        
-        while not clicked and tries < MAX_RETRY:
+    def parse_user(self):
+        response = BeautifulSoup(self.driver.page_source, 'html.parser')
+        user = {}
+        try: 
+            user_unreachable = response.find('span', class_="section-empty-tab").text
+            user['total'] = 0
+        except:            
             try:
-                try:
-                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))
-                except:
-                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class=\'gm2-body-1 cYrDcjyGO77__label\'])[position()=2]")))
-                
-                menu_bt.click()
-                clicked = True
-                time.sleep(3)
+                user['reviews'] = response.find('span', class_="section-tab-info-stats-label").text.replace(' · ', ' ').replace(',','').split(' ')[0]
             except Exception as e:
-                tries += 1
-                self.logger.warn('Failed to click recent button')
-
-            # failed to open the dropdown
-            if tries == MAX_RETRY:
-                return -1
-        
-        # element of the list specified according to ind
-        recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ind]
-        recent_rating_bt.click()
-
-        # wait to load review (ajax call)
-        time.sleep(5)
-
-        return 0
-
-
+                print(e)
+                user['reviews'] = 0
+                
+            try:
+                user['ratings'] = response.find('span', class_='section-tab-info-stats-label').text.replace('·', '').replace(',','').split(' ')[3]
+            except Exception as e:
+                print(e)
+                user['ratings'] = 0
+                
+            user['contributions'] = response.find_all('div', class_="section-profile-header-line")[1].text
+            print(colored(user, 'green'))
+            user['total'] = int(user['ratings']) + int(user['reviews'])
+            
+            return user
+    
+    
     def get_reviews(self, offset):
         # scroll to load reviews
-        # wait for other reviews to load (ajax)
-        time.sleep(4)
 
         self.__scroll()
         # expand review text
@@ -104,12 +92,6 @@ class GoogleMapsScraper:
 
 
     def get_account(self, url):
-
-        self.driver.get(url)
-
-        # ajax call also for this section
-        time.sleep(4)
-
         resp = BeautifulSoup(self.driver.page_source, 'html.parser')
 
         place_data = self.__parse_place(resp)
@@ -120,16 +102,18 @@ class GoogleMapsScraper:
     def __parse(self, review):
 
         item = {}
-        try:
-            id_review = review.find('button', class_='section-review-action-menu')['data-review-id']
-        except:
-            id_review = "Not a google review"
-        username = review.find('div', class_='section-review-title').find('span').text
-
+        title = review.find('div', class_="section-review-title section-review-title-consistent-with-review-text").find('span').text
+        location = review.find('div', class_="section-review-subtitle section-review-subtitle-nowrap").find_all('span')[0].text
         try:
             review_text = self.__filter_string(review.find('span', class_='section-review-text').text)
         except Exception as e:
             review_text = None
+            
+        try:
+            response_text = self.__filter_string(review.find('div', class_='section-review-owner-response').text)
+            # response_text = self.__filter_string(review.find("(//button[@class=\'section-expand-review blue-link\'])[position()=2]"))
+        except Exception as e:
+            response_text = None
         
         try:
             rating = float(review.find('span', class_='section-review-stars')['aria-label'].split(' ')[1])
@@ -152,22 +136,18 @@ class GoogleMapsScraper:
             else:
                 n_photos = 0
 
+            idx = len(metadata)
+            n_reviews = int(metadata[idx - 1].split(' ')[0].replace('.', ''))
+
         except Exception as e:
-            n_photos = 0
-            
-        try:
-            n_reviews = review.find('div', class_='section-review-subtitle').find_all('span')[1].text.replace("・", "")
-            print(colored(n_reviews, 'red'))
-            n_reviews = n_reviews[:-8]
-
-        except:
             n_reviews = 0
-
-        user_url = review.find('a')['href']
-
-        item['id_review'] = id_review
+            n_photos = 0
+        
+        item['title'] = title
+        item['location'] = location
         item['caption'] = review_text
-
+        item['response'] = response_text
+        item['rating'] = rating
         # depends on language, which depends on geolocation defined by Google Maps
         # custom mapping to transform into date shuold be implemented
         item['relative_date'] = relative_date
@@ -175,29 +155,8 @@ class GoogleMapsScraper:
         # correct date as retrieval_date - time(relative_date)
         item['retrieval_date'] = datetime.now()
         item['absolute_date'] = absolute_date
-        item['rating'] = rating
-        item['username'] = username
-        item['n_review_user'] = n_reviews
-        item['n_photo_user'] = n_photos
-        item['url_user'] = user_url
 
         return item
-
-
-    def __parse_place(self, response):
-
-        place = {}
-        try:
-            place['overall_rating'] = float(response.find('div', class_='gm2-display-2').text.replace(',', '.'))
-        except:
-            place['overall_rating'] = 'NOT FOUND'
-
-        try:
-            place['n_reviews'] = int(response.find('div', class_='gm2-caption').text.replace('.', '').replace(',','').split(' ')[0])
-        except:
-            place['n_reviews'] = 0
-
-        return place
 
 
     # expand review description
@@ -250,7 +209,15 @@ class GoogleMapsScraper:
 
         return logger
 
-
+# =============================================================================
+# 
+#     def __set_driver(self, url, debug=False):
+#         self.driver.get(url)
+#         # scroll to load reviews
+#         # wait for other reviews to load (ajax)
+#         time.sleep(4)
+# 
+# =============================================================================
     def __get_driver(self, debug=False):
         options = Options()
 
@@ -271,11 +238,3 @@ class GoogleMapsScraper:
     def __filter_string(self, str):
         strOut = str.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ')
         return strOut
-    
-    def __filter_digit(self, string:str):
-        temp = str()
-        for char in string:
-            if 48 <= ord(char) <= 59:
-                temp += char
-                
-        return temp;
