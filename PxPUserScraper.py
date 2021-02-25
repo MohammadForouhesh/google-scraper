@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # store reviews in CSV file
     writer = csv_writer(args.i)
 
-    loc_temp = ("data/deehurst_newest_gm_reviews.xlsx")
+    loc_temp = ("data/deerhurst_newest_gm_reviews.xlsx")
     count = 0
     df_temp = pd.read_excel(loc_temp, index_col=1)
     for index in range(0, len(df_temp)):
@@ -51,19 +51,20 @@ if __name__ == '__main__':
         n = 0
         list_reviews = list()
         
-        scraper = GoogleUserScraper(debug=args.debug)
+        
         try: 
-            scraper.driver.get(url)
-            time.sleep(4)
+            scraper = GoogleUserScraper(debug=args.debug)
+            
         except:
             pyautogui.click(2025, 2100)
             pyautogui.click(x=3050, y=1200)
             time.sleep(1)
             pyautogui.click(x=3050, y=1200)
             time.sleep(10)
-            scraper.driver.get(url)
-            time.sleep(4)
+            scraper = GoogleUserScraper(debug=args.debug)
             
+        scraper.driver.get(url)
+        time.sleep(4)            
         user = scraper.parse_user()
         print(user)
         args.N = user["total"]

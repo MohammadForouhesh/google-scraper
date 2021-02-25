@@ -209,15 +209,7 @@ class GoogleUserScraper:
 
         return logger
 
-# =============================================================================
-# 
-#     def __set_driver(self, url, debug=False):
-#         self.driver.get(url)
-#         # scroll to load reviews
-#         # wait for other reviews to load (ajax)
-#         time.sleep(4)
-# 
-# =============================================================================
+
     def __get_driver(self, debug=False):
         options = Options()
 
