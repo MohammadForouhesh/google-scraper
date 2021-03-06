@@ -137,8 +137,9 @@ class GoogleMapsScraper:
         except:
             __rating = review.find('span', class_='section-review-numerical-rating').text
             relative_date = review.find('span', class_='section-review-publish-date-and-source').find('span').text
+            __rating = __rating.split("/")
             numerator = int(__rating[0])
-            denominator = int(__rating[2])
+            denominator = int(__rating[1])
             rating = (numerator/denominator)*5
             
         c = pdt.Constants()
