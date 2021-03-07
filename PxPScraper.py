@@ -5,11 +5,9 @@ Created on Sat Feb 13 02:33:00 2021
 @author: Mohammad.FT
 """
 import argparse
-
 import numpy as np
 import pandas as pd
 from termcolor import colored
-
 from PxPGoogleMaps import GoogleMapsScraper
 
 ind = {'most_relevant' : 0 , 'newest' : 1, 'highest_rating' : 2, 'lowest_rating' : 3 }

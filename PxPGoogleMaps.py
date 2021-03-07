@@ -19,6 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from termcolor import colored
 from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
 MAX_WAIT = 10
@@ -259,7 +260,7 @@ class GoogleMapsScraper:
         options.add_argument("--disable-notifications")
         options.add_argument("--lang=en-GB")
         input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
-        # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+        #input_driver = webdriver.Edge(EdgeChromiumDriverManager().install(), verify=False)                                      )
 
         return input_driver
 
