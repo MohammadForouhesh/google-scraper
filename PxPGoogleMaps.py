@@ -5,24 +5,20 @@ Created on Mon Feb 22 14:50:15 2021
 @author: Mohammad.FT
 """
 
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
+import logging
+import time
+import traceback
+from datetime import datetime
+
+import parsedatetime as pdt
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from bs4 import BeautifulSoup
-import parsedatetime as pdt
-from datetime import datetime
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 from termcolor import colored
-from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
-import time
-import re
-import logging
-import traceback
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
 MAX_WAIT = 10
