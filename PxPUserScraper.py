@@ -5,25 +5,23 @@ Created on Sat Feb 13 02:33:00 2021
 @author: Mohammad.FT
 """
 
-from PxPGoogleUser import GoogleUserScraper
-from datetime import datetime, timedelta
-import pyautogui
 import argparse
-import csv
-from termcolor import colored
 import time
+
 import numpy as np
 import pandas as pd
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
+import pyautogui
+from termcolor import colored
 
+from PxPGoogleUser import GoogleUserScraper
 
-ind = {'most_relevant' : 0 , 'newest' : 1, 'highest_rating' : 2, 'lowest_rating' : 3 }
+ind = {'most_relevant': 0, 'newest': 1, 'highest_rating': 2, 'lowest_rating': 3}
 HEADER = ['title', 'location', 'caption', 'response', 'rating', 'relative_date', 'retrieval_date', "absolute_date"]
+
 
 def csv_writer(path='User/'):
     outfile = path + 'user_reviews.xlsx'
-    writer = pd.ExcelWriter(outfile, engine = 'xlsxwriter')
+    writer = pd.ExcelWriter(outfile, engine='xlsxwriter')
     return writer
 
 
