@@ -77,6 +77,9 @@ if __name__ == '__main__':
                         
                         if len(reviews) == 0:
                             n += 1
+                            scraper.driver.quit()
+                            scraper.driver.get(url)
+                            scraper.more_reviews()
                         
                     print(list_reviews)
                     sheet = np.array(list_reviews)
