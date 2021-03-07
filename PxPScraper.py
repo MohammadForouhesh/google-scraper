@@ -4,20 +4,13 @@ Created on Sat Feb 13 02:33:00 2021
 
 @author: Mohammad.FT
 """
-# -*- coding: utf-8 -*-
-from PxPGoogleMaps import GoogleMapsScraper
-from datetime import datetime, timedelta
 import argparse
-import csv
-from termcolor import colored
-import time
+
 import numpy as np
 import pandas as pd
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
+from termcolor import colored
 
-
-
+from PxPGoogleMaps import GoogleMapsScraper
 
 ind = {'most_relevant' : 0 , 'newest' : 1, 'highest_rating' : 2, 'lowest_rating' : 3 }
 HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username', 'n_review_user', 'n_photo_user', 'url_user']
