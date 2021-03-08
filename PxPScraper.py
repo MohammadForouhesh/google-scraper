@@ -65,7 +65,6 @@ if __name__ == '__main__':
     #91.251.104.220
     driver.get("https://whatismyip.com")
     time.sleep(5)
-    print("konde pir bakereh")
     set_proxy(driver, http_addr="93.113.63.144", http_port=31596)
 
     driver.get("https://whatismyip.com")"""
