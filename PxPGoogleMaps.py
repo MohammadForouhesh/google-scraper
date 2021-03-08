@@ -18,6 +18,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from termcolor import colored
+from webdriver_manager.firefox import GeckoDriverManager
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
@@ -259,8 +260,9 @@ class GoogleMapsScraper:
 
         options.add_argument("--disable-notifications")
         options.add_argument("--lang=en-GB")
-        input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
-        #input_driver = webdriver.Edge(EdgeChromiumDriverManager().install(), verify=False)                                      )
+        input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+        # input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
+        # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install(), verify=False)                                      )
 
         return input_driver
 

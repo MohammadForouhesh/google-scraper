@@ -7,12 +7,24 @@ Created on Sat Feb 13 02:33:00 2021
 import argparse
 import numpy as np
 import pandas as pd
+from itertools import cycle
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium import webdriver
+import requests
+from lxml.html import fromstring
+from webdriver_manager.firefox import GeckoDriverManager
+import time
+
+from itertools import cycle
 from termcolor import colored
 from PxPGoogleMaps import GoogleMapsScraper
 
-ind = {'most_relevant' : 0 , 'newest' : 1, 'highest_rating' : 2, 'lowest_rating' : 3 }
-HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username', 'n_review_user', 'n_photo_user', 'url_user']
-HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date','retrieval_date', "absolute_date", 'rating', 'username', 'n_review_user', 'n_photo_user', 'url_user', 'url_source']
+ind = {'most_relevant': 0, 'newest': 1, 'highest_rating': 2, 'lowest_rating': 3}
+HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username',
+          'n_review_user', 'n_photo_user', 'url_user']
+HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username',
+                   'n_review_user', 'n_photo_user', 'url_user', 'url_source']
+
 
 def csv_writer(urls, source_field, ind_sort_by, path='data/'):
     outfile = path + '_' + ind_sort_by + urls[:-4] + '_gm_reviews.xlsx'
@@ -20,63 +32,40 @@ def csv_writer(urls, source_field, ind_sort_by, path='data/'):
     return writer
 
 
+def set_proxy(driver, http_addr='', http_port=0, ssl_addr='', ssl_port=0, socks_addr='', socks_port=0):
+    driver.execute("SET_CONTEXT", {"context": "chrome"})
+
+    try:
+        driver.execute_script("""
+          Services.prefs.setIntPref('network.proxy.type', 1);
+          Services.prefs.setCharPref("network.proxy.http", arguments[0]);
+          Services.prefs.setIntPref("network.proxy.http_port", arguments[1]);
+          Services.prefs.setCharPref("network.proxy.ssl", arguments[2]);
+          Services.prefs.setIntPref("network.proxy.ssl_port", arguments[3]);
+          Services.prefs.setCharPref('network.proxy.socks', arguments[4]);
+          Services.prefs.setIntPref('network.proxy.socks_port', arguments[5]);
+          """, http_addr, http_port, ssl_addr, ssl_port, socks_addr, socks_port)
+
+    finally:
+        driver.execute("SET_CONTEXT", {"context": "content"})
+
+
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
-    parser.add_argument('--N', type=int, default=1000, help='Number of reviews to scrape')
-    parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--sort_by', type=str, default='newest', help='sort by most_relevant, newest, highest_rating or lowest_rating')
-    parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
-    parser.add_argument('--debug', dest='debug', action='store_true', help='Run scraper using browser graphical interface')
-    parser.add_argument('--source', dest='source', default=True, action='store_true', help='Add source url to CSV file (for multiple urls in a single file)')
-    parser.set_defaults(place=False, debug=False, source=False)
 
-    args = parser.parse_args()
+    f = open("https10k_pxp.txt")
+    doc = f.read()
+    lines = doc.split('\n')
+    iter = cycle(lines)
+    i = 0
+    while i < 10:
+        print(next(iter).split(":"))
+        i+=1
+    """driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+    #set_proxy(driver, http_addr="93.113.63.144", http_port=37833)
+    #91.251.104.220
+    driver.get("https://whatismyip.com")
+    time.sleep(5)
+    print("konde pir bakereh")
+    set_proxy(driver, http_addr="93.113.63.144", http_port=31596)
 
-    # store reviews in CSV file
-    writer = csv_writer(args.i, args.source, args.sort_by)
-
-    with GoogleMapsScraper(debug=args.debug) as scraper:
-        with open(args.i, 'r') as urls_file:
-            count = 0
-            for url in urls_file:
-                index = url.find("/", 34)
-                print(url[34:index] + str(count))
-                
-                if args.place:
-                    print(scraper.get_account(url))
-                else:
-                    error = scraper.sort_by(url, ind[args.sort_by])
-                    print(error)
-
-                if error == 0:
-
-                    n = 0
-
-                    if ind[args.sort_by] == 0:
-                        scraper.more_reviews()
-                    
-                    list_reviews = list()
-                    while n < args.N:
-                        print(colored('[Review ' + str(n) + ']', 'cyan'))
-                        reviews = scraper.get_reviews(n)
-                        for r in reviews:
-                            row_data = list(r.values())
-                            if args.source:
-                                row_data.append(url[:-1])
-                            list_reviews.append(row_data)
-                        n += len(reviews)
-                        
-                        if len(reviews) == 0:
-                            n += 1
-                            scraper.driver.quit()
-                            scraper.driver.get(url)
-                            scraper.more_reviews()
-                        
-                    print(list_reviews)
-                    sheet = np.array(list_reviews)
-                    temp_dataframe = pd.DataFrame(sheet, columns=HEADER)
-                    temp_dataframe.to_excel(writer, sheet_name=url[34:index]+str(count))
-                count += 1
-                    
-                        
-    writer.close()
+    driver.get("https://whatismyip.com")"""
