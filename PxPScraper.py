@@ -79,7 +79,10 @@ if __name__ == '__main__':
                         scraper.more_reviews()
 
                     list_reviews = list()
+                    visited = False
                     while n < args.N:
+                        for iter_scroll in range(0, 20): scraper.scroll()
+
                         print(colored('[Review ' + str(n) + ']', 'cyan'))
                         reviews = scraper.get_reviews(n)
                         for r in reviews:
@@ -90,10 +93,13 @@ if __name__ == '__main__':
                         n += len(reviews)
 
                         if len(reviews) == 0:
-                            n += 1
-                            proxy = next(proxy_iter).split(":")
-                            PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
-                            time.sleep(1)
+                            if not visited:
+                                # scraper.driver.refresh()
+                                # scraper.sort_by(url, ind[args.sort_by])
+                                proxy = next(proxy_iter).split(":")
+                                PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
+                                visited = True
+                            else: break
 
                     print(list_reviews)
                     sheet = np.array(list_reviews)

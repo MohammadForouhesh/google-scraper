@@ -84,7 +84,7 @@ class GoogleMapsScraper:
     def get_reviews(self, offset):
         # scroll to load reviews
         # wait for other reviews to load (ajax)
-        time.sleep(4)
+        time.sleep(1)
 
         self.__scroll()
         # expand review text
@@ -106,7 +106,7 @@ class GoogleMapsScraper:
         self.driver.get(url)
 
         # ajax call also for this section
-        time.sleep(4)
+        time.sleep(1)
 
         resp = BeautifulSoup(self.driver.page_source, 'html.parser')
 
@@ -220,8 +220,11 @@ class GoogleMapsScraper:
         print('LINKS HERE', links)
         for l in links:
             l.click()
-        time.sleep(2)
+        time.sleep(1)
 
+    def scroll(self):
+        self.__scroll()
+        time.sleep(0.1)
 
     def __scroll(self):
         scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
