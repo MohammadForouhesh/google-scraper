@@ -14,7 +14,7 @@ import requests
 from lxml.html import fromstring
 from webdriver_manager.firefox import GeckoDriverManager
 import time
-
+from PxPDynamicDriver import DynamicDriver
 from itertools import cycle
 from termcolor import colored
 from PxPGoogleMaps import GoogleMapsScraper
@@ -32,24 +32,6 @@ def csv_writer(urls, source_field, ind_sort_by, path='data/'):
     return writer
 
 
-def set_proxy(driver, http_addr='', http_port=0, ssl_addr='', ssl_port=0, socks_addr='', socks_port=0):
-    driver.execute("SET_CONTEXT", {"context": "chrome"})
-
-    try:
-        driver.execute_script("""
-          Services.prefs.setIntPref('network.proxy.type', 1);
-          Services.prefs.setCharPref("network.proxy.http", arguments[0]);
-          Services.prefs.setIntPref("network.proxy.http_port", arguments[1]);
-          Services.prefs.setCharPref("network.proxy.ssl", arguments[2]);
-          Services.prefs.setIntPref("network.proxy.ssl_port", arguments[3]);
-          Services.prefs.setCharPref('network.proxy.socks', arguments[4]);
-          Services.prefs.setIntPref('network.proxy.socks_port', arguments[5]);
-          """, http_addr, http_port, ssl_addr, ssl_port, socks_addr, socks_port)
-
-    finally:
-        driver.execute("SET_CONTEXT", {"context": "content"})
-
-
 if __name__ == '__main__':
 
     f = open("https10k_pxp.txt")
@@ -60,9 +42,9 @@ if __name__ == '__main__':
     while i < 10:
         print(next(iter).split(":"))
         i+=1
-    """driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
-    #set_proxy(driver, http_addr="93.113.63.144", http_port=37833)
-    #91.251.104.220
+
+    driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+
     driver.get("https://whatismyip.com")
     time.sleep(5)
     set_proxy(driver, http_addr="93.113.63.144", http_port=31596)
