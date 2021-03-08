@@ -5,6 +5,7 @@ Created on Mon Mar 8 10:15:00 2021
 @author: Mohammad.FT
 """
 
+
 def set_proxy(driver, http_addr='', http_port=0, ssl_addr='', ssl_port=0, socks_addr='', socks_port=0):
     driver.execute("SET_CONTEXT", {"context": "chrome"})
 
