@@ -81,7 +81,7 @@ if __name__ == '__main__':
                     list_reviews = list()
                     visited = False
                     while n < args.N:
-                        for iter_scroll in range(0, 20): scraper.scroll()
+                        # for iter_scroll in range(0, 20): scraper.scroll()
 
                         print(colored('[Review ' + str(n) + ']', 'cyan'))
                         reviews = scraper.get_reviews(n)
