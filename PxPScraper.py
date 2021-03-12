@@ -93,7 +93,7 @@ if __name__ == '__main__':
                         n += len(reviews)
 
                         if len(reviews) == 0:
-                            if visited < 10:
+                            if visited < 15:
                                 # scraper.driver.refresh()
                                 # scraper.sort_by(url, ind[args.sort_by])
                                 proxy = next(proxy_iter).split(":")
