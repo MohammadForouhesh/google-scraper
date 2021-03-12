@@ -36,7 +36,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
     parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
     parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--sort_by', type=str, default='newest',
+    parser.add_argument('--sort_by', type=str, default='most_relevant',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
     parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
     parser.add_argument('--debug', dest='debug', action='store_true',
@@ -67,6 +67,7 @@ if __name__ == '__main__':
 
                 if args.place:
                     print(scraper.get_account(url))
+
                 else:
                     error = scraper.sort_by(url, ind[args.sort_by])
                     print(error)
@@ -75,13 +76,15 @@ if __name__ == '__main__':
 
                     n = 0
 
-                    if ind[args.sort_by] == 0:
-                        scraper.more_reviews()
+                    # if ind[args.sort_by] == 0:
+                    #    scraper.more_reviews()
 
                     list_reviews = list()
                     visited = 0
                     while n < args.N:
-                        for iter_scroll in range(0, 20): scraper.scroll()
+                        for iter_scroll in range(0, 20):
+                            try:    scraper.scroll()
+                            except: pass
 
                         print(colored('[Review ' + str(n) + ']', 'cyan'))
                         reviews = scraper.get_reviews(n)
@@ -93,7 +96,9 @@ if __name__ == '__main__':
                         n += len(reviews)
 
                         if len(reviews) == 0:
-                            if visited < 15:
+                            if visited < 50:
+                                q = input("some error occurred, rotate IP?[y/N]:")
+                                if q.lower() == 'n': break
                                 # scraper.driver.refresh()
                                 # scraper.sort_by(url, ind[args.sort_by])
                                 proxy = next(proxy_iter).split(":")
