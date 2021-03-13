@@ -80,7 +80,7 @@ if __name__ == '__main__':
                     #    scraper.more_reviews()
 
                     list_reviews = list()
-                    visited = 0
+                    visited = 1
                     while n < args.N:
                         for iter_scroll in range(0, 20):
                             try:    scraper.scroll()
@@ -96,9 +96,10 @@ if __name__ == '__main__':
                         n += len(reviews)
 
                         if len(reviews) == 0:
-                            if visited < 50:
-                                q = input("some error occurred, rotate IP?[y/N]:")
-                                if q.lower() == 'n': break
+                            if visited < 100:
+                                if visited % 10 == 0:
+                                    q = input("some error occurred, rotate IP?[y/N]:")
+                                    if q.lower() == 'n': break
                                 # scraper.driver.refresh()
                                 # scraper.sort_by(url, ind[args.sort_by])
                                 proxy = next(proxy_iter).split(":")
@@ -106,7 +107,7 @@ if __name__ == '__main__':
                                 visited += 1
                             else: break
                         else:
-                            visited = 0
+                            visited = 1
 
                     print(list_reviews)
                     sheet = np.array(list_reviews)
