@@ -18,7 +18,7 @@ import PxPDynamicProxy
 from itertools import cycle
 from termcolor import colored
 from PxPGoogleMaps import GoogleMapsScraper
-
+ref = {'all_reviews': 0, 'google': 1, 'hotels.com': 2, 'priceline':3, 'expedia': 4, 'orbitz': 5, 'travelocity': 6}
 ind = {'most_relevant': 0, 'newest': 1, 'highest_rating': 2, 'lowest_rating': 3}
 HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username',
           'n_review_user', 'n_photo_user', 'url_user']
@@ -38,6 +38,8 @@ if __name__ == '__main__':
     parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
     parser.add_argument('--sort_by', type=str, default='most_relevant',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
+    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
+                        help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, travelocity")
     parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help='Run scraper using browser graphical interface')
@@ -70,6 +72,10 @@ if __name__ == '__main__':
 
                 else:
                     error = scraper.sort_by(url, ind[args.sort_by])
+                    print(error)
+
+                if ref[args.channel] != 0:
+                    error = scraper.channeling(url, ref[args.channel])
                     print(error)
 
                 if error == 0:
