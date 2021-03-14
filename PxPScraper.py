@@ -114,13 +114,13 @@ def crawler(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
-    parser.add_argument('--N', type=int, default=200, help='Number of reviews to scrape')
+    parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
     parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--all', dest='all', type=bool, default=False,
+    parser.add_argument('--all', dest='all', type=bool, default=True,
                         help="crawl over every possible option and choice.")
-    parser.add_argument('--sort_by', type=str, default='highest_rating',
+    parser.add_argument('--sort_by', type=str, default='most_relevant',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
-    parser.add_argument('--channel', dest='channel', type=str, default='trip',
+    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
                         help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
                              "travelocity, wotif, ebookers and trip")
     parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
