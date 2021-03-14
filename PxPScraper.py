@@ -92,7 +92,7 @@ def crawler(args):
 
                         if len(reviews) == 0:
                             if visited < 100:
-                                if visited % 10 == 0:
+                                if visited % 10 == 0 or n > 1600:
                                     q = input("some error occurred, rotate IP?[y/N]:")
                                     if q.lower() == 'n': break
                                 # scraper.driver.refresh()
