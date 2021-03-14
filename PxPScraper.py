@@ -71,11 +71,10 @@ if __name__ == '__main__':
                     print(scraper.get_account(url))
 
                 else:
+                    print("statement1")
                     error = scraper.sort_by(url, ind[args.sort_by])
-                    print(error)
-
-                if ref[args.channel] != 0:
-                    error = scraper.channeling(url, ref[args.channel])
+                    try:    error = scraper.channeling(ref[args.channel])
+                    except: pass
                     print(error)
 
                 if error == 0:
