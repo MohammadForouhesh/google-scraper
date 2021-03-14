@@ -80,7 +80,9 @@ class GoogleMapsScraper:
 
         return 0
 
-
+    def channeling(self, url, ref):
+        pass
+    
     def get_reviews(self, offset):
         # scroll to load reviews
         # wait for other reviews to load (ajax)
