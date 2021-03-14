@@ -80,9 +80,41 @@ class GoogleMapsScraper:
 
         return 0
 
-    def channeling(self, url, ref):
-        pass
-    
+    def channeling(self, ref):
+        wait = WebDriverWait(self.driver, MAX_WAIT)
+
+        # open dropdown menu
+        clicked = False
+        tries = 0
+
+        while not clicked and tries < MAX_RETRY:
+            try:
+                try:
+                    menu_bt = wait.until(EC.element_to_be_clickable(
+                        (By.XPATH, "(//div[@class=\'gm2-body-1 cYrDcjyGO77__label\'])[position()=1]")))
+                except:
+                    pass
+
+                menu_bt.click()
+                clicked = True
+                time.sleep(3)
+            except Exception as e:
+                tries += 1
+                self.logger.warn('Failed to click recent button')
+
+            # failed to open the dropdown
+            if tries == MAX_RETRY:
+                raise Exception("No such menu")
+
+        # element of the list specified according to ind
+        recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ref]
+        recent_rating_bt.click()
+
+        # wait to load review (ajax call)
+        time.sleep(5)
+
+        return 0
+
     def get_reviews(self, offset):
         # scroll to load reviews
         # wait for other reviews to load (ajax)
