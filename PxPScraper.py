@@ -18,7 +18,8 @@ import PxPDynamicProxy
 from itertools import cycle
 from termcolor import colored
 from PxPGoogleMaps import GoogleMapsScraper
-ref = {'all_reviews': 0, 'google': 1, 'hotels.com': 2, 'priceline':3, 'expedia': 4, 'orbitz': 5, 'travelocity': 6}
+
+ref = {'all_reviews': 0, 'google': 1, 'hotels.com': 2, 'priceline': 3, 'expedia': 4, 'orbitz': 5, 'travelocity': 6}
 ind = {'most_relevant': 0, 'newest': 1, 'highest_rating': 2, 'lowest_rating': 3}
 HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username',
           'n_review_user', 'n_photo_user', 'url_user']
@@ -26,34 +27,19 @@ HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "a
                    'n_review_user', 'n_photo_user', 'url_user', 'url_source']
 
 
-def csv_writer(urls, source_field, ind_sort_by, path='data/'):
-    outfile = path + '_' + ind_sort_by + urls[:-4] + '_gm_reviews.xlsx'
+def csv_writer(urls, channel, ind_sort_by, path='data/'):
+    with open(urls, 'r') as urls_file:
+        for url in urls_file:
+            index = url.find("/", 34)
+            name = url[34:index]
+    outfile = path + channel + "_" + ind_sort_by + "_" + name + '_gm_reviews.xlsx'
     writer = pd.ExcelWriter(outfile)
     return writer
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
-    parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
-    parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--sort_by', type=str, default='most_relevant',
-                        help='sort by most_relevant, newest, highest_rating or lowest_rating')
-    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
-                        help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, travelocity")
-    parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
-    parser.add_argument('--debug', dest='debug', action='store_true',
-                        help='Run scraper using browser graphical interface')
-    parser.add_argument('--source', dest='source', default=True, action='store_true',
-                        help='Add source url to CSV file (for multiple urls in a single file)')
-    parser.add_argument('--proxy', dest='proxy', default="https10k_pxp.txt",
-                        help='Add proxy file to rotate IP address dynamically.')
-
-    parser.set_defaults(place=False, debug=False, source=False)
-
-    args = parser.parse_args()
-
+def crawler(args):
     # store reviews in CSV file
-    writer = csv_writer(args.i, args.source, args.sort_by)
+    writer = csv_writer(args.i, args.channel, args.sort_by)
 
     proxy_file = open(args.proxy)
     doc = proxy_file.read()
@@ -73,8 +59,10 @@ if __name__ == '__main__':
                 else:
                     print("statement1")
                     error = scraper.sort_by(url, ind[args.sort_by])
-                    try:    error = scraper.channeling(ref[args.channel])
-                    except: pass
+                    try:
+                        error = scraper.channeling(ref[args.channel])
+                    except:
+                        pass
                     print(error)
 
                 if error == 0:
@@ -88,8 +76,10 @@ if __name__ == '__main__':
                     visited = 1
                     while n < args.N:
                         for iter_scroll in range(0, 20):
-                            try:    scraper.scroll()
-                            except: pass
+                            try:
+                                scraper.scroll()
+                            except:
+                                pass
 
                         print(colored('[Review ' + str(n) + ']', 'cyan'))
                         reviews = scraper.get_reviews(n)
@@ -110,7 +100,8 @@ if __name__ == '__main__':
                                 proxy = next(proxy_iter).split(":")
                                 PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
                                 visited += 1
-                            else: break
+                            else:
+                                break
                         else:
                             visited = 1
 
@@ -121,3 +112,34 @@ if __name__ == '__main__':
                 count += 1
 
     writer.close()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
+    parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
+    parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
+    parser.add_argument('--all', dest='all', type=bool, default=True,
+                        help="crawl over every possible option and choice.")
+    parser.add_argument('--sort_by', type=str, default='most_relevant',
+                        help='sort by most_relevant, newest, highest_rating or lowest_rating')
+    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
+                        help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
+                             "travelocity.")
+    parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
+    parser.add_argument('--debug', dest='debug', action='store_true',
+                        help='Run scraper using browser graphical interface')
+    parser.add_argument('--source', dest='source', default=True, action='store_true',
+                        help='Add source url to CSV file (for multiple urls in a single file)')
+    parser.add_argument('--proxy', dest='proxy', default="https10k_pxp.txt",
+                        help='Add proxy file to rotate IP address dynamically.')
+
+    parser.set_defaults(place=False, debug=False, source=False)
+
+    args = parser.parse_args()
+    if not args.all: crawler(args)
+    else:
+        for channel in ref:
+            for sort in ind:
+                args.channel = channel
+                args.sort_by = sort
+                crawler(args)
