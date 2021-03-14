@@ -4,22 +4,18 @@ Created on Sat Feb 13 02:33:00 2021
 
 @author: Mohammad.FT
 """
+import os
 import argparse
 import numpy as np
 import pandas as pd
-from itertools import cycle
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium import webdriver
-import requests
-from lxml.html import fromstring
-from webdriver_manager.firefox import GeckoDriverManager
-import time
 import PxPDynamicProxy
+from pathlib import Path
 from itertools import cycle
 from termcolor import colored
 from PxPGoogleMaps import GoogleMapsScraper
 
-ref = {'all_reviews': 0, 'google': 1, 'hotels.com': 2, 'priceline': 3, 'expedia': 4, 'orbitz': 5, 'travelocity': 6}
+ref = {'all_reviews': 0, 'google': 1, 'priceline': 2, 'expedia': 3, 'orbitz': 4, 'travelocity': 5, 'wotif': 6,
+       'ebookers': 7, 'trip': 8, 'hotels.com': 9}
 ind = {'most_relevant': 0, 'newest': 1, 'highest_rating': 2, 'lowest_rating': 3}
 HEADER = ['id_review', 'caption', 'relative_date', 'retrieval_date', "absolute_date", 'rating', 'username',
           'n_review_user', 'n_photo_user', 'url_user']
@@ -27,19 +23,17 @@ HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "a
                    'n_review_user', 'n_photo_user', 'url_user', 'url_source']
 
 
-def csv_writer(urls, channel, ind_sort_by, path='data/'):
-    with open(urls, 'r') as urls_file:
-        for url in urls_file:
-            index = url.find("/", 34)
-            name = url[34:index]
-    outfile = path + channel + "_" + ind_sort_by + "_" + name + '_gm_reviews.xlsx'
+def csv_writer(name, channel, ind_sort_by, path='data/'):
+    name = name.replace("+", "").replace("%26", "")
+    Path(path + name).mkdir(parents=True, exist_ok=True)
+    outfile = path + name + "/" + channel + "_" + ind_sort_by + '_gm_reviews.xlsx'
     writer = pd.ExcelWriter(outfile)
-    return writer
+    return writer, outfile
 
 
 def crawler(args):
     # store reviews in CSV file
-    writer = csv_writer(args.i, args.channel, args.sort_by)
+    # writer = csv_writer(args.i, args.channel, args.sort_by)
 
     proxy_file = open(args.proxy)
     doc = proxy_file.read()
@@ -52,17 +46,22 @@ def crawler(args):
             for url in urls_file:
                 index = url.find("/", 34)
                 print(url[34:index] + str(count))
+                # store reviews in CSV file
+                writer, path = csv_writer(url[34:index], args.channel, args.sort_by)
 
                 if args.place:
                     print(scraper.get_account(url))
 
                 else:
-                    print("statement1")
                     error = scraper.sort_by(url, ind[args.sort_by])
-                    try:
-                        error = scraper.channeling(ref[args.channel])
-                    except:
-                        pass
+                    try: error = scraper.channeling(ref[args.channel])
+                    except IndexError as e:
+                        sheet = np.array(['error, no such channel'])
+                        temp_dataframe = pd.DataFrame(sheet)
+                        temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
+                        writer.close()
+                        os.remove(path)
+                        continue
                     print(error)
 
                 if error == 0:
@@ -109,22 +108,21 @@ def crawler(args):
                     sheet = np.array(list_reviews)
                     temp_dataframe = pd.DataFrame(sheet, columns=HEADER)
                     temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
+                #writer.close()
                 count += 1
-
-    writer.close()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
-    parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
+    parser.add_argument('--N', type=int, default=200, help='Number of reviews to scrape')
     parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--all', dest='all', type=bool, default=True,
+    parser.add_argument('--all', dest='all', type=bool, default=False,
                         help="crawl over every possible option and choice.")
-    parser.add_argument('--sort_by', type=str, default='most_relevant',
+    parser.add_argument('--sort_by', type=str, default='highest_rating',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
-    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
+    parser.add_argument('--channel', dest='channel', type=str, default='trip',
                         help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
-                             "travelocity.")
+                             "travelocity, wotif, ebookers and trip")
     parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
     parser.add_argument('--debug', dest='debug', action='store_true',
                         help='Run scraper using browser graphical interface')
