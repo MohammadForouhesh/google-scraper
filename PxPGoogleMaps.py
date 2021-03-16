@@ -5,26 +5,26 @@ Created on Mon Feb 22 14:50:15 2021
 @author: Mohammad.FT
 """
 
-import time
 import logging
+import time
 import traceback
-import parsedatetime as pdt
 from datetime import datetime
+
+import parsedatetime as pdt
 from bs4 import BeautifulSoup
-from termcolor import colored
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.support.ui import WebDriverWait
+from termcolor import colored
+from webdriver_manager.firefox import GeckoDriverManager
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
 MAX_WAIT = 10
 MAX_RETRY = 5
 MAX_SCROLLS = 40
+
 
 class GoogleMapsScraper:
     def __init__(self, debug=False):
@@ -51,14 +51,15 @@ class GoogleMapsScraper:
         # open dropdown menu
         clicked = False
         tries = 0
-        
+
         while not clicked and tries < MAX_RETRY:
             try:
                 try:
                     menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))
                 except:
-                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class=\'gm2-body-1 cYrDcjyGO77__label\'])[position()=2]")))
-                
+                    menu_bt = wait.until(EC.element_to_be_clickable(
+                        (By.XPATH, "(//div[@class=\'gm2-body-1 cYrDcjyGO77__label\'])[position()=2]")))
+
                 menu_bt.click()
                 clicked = True
                 time.sleep(3)
@@ -69,7 +70,7 @@ class GoogleMapsScraper:
             # failed to open the dropdown
             if tries == MAX_RETRY:
                 return -1
-        
+
         # element of the list specified according to ind
         recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ind]
         recent_rating_bt.click()
@@ -133,7 +134,6 @@ class GoogleMapsScraper:
 
         return parsed_reviews
 
-
     def get_account(self, url):
 
         self.driver.get(url)
@@ -146,7 +146,6 @@ class GoogleMapsScraper:
         place_data = self.__parse_place(resp)
 
         return place_data
-
 
     def __parse(self, review):
 
@@ -161,7 +160,7 @@ class GoogleMapsScraper:
             review_text = self.__filter_string(review.find('span', class_='section-review-text').text)
         except Exception as e:
             review_text = None
-        
+
         try:
             rating = float(review.find('span', class_='section-review-stars')['aria-label'].split(' ')[1])
             relative_date = review.find('span', class_='section-review-publish-date').text
@@ -169,10 +168,10 @@ class GoogleMapsScraper:
             __rating = review.find('span', class_='section-review-numerical-rating').text
             relative_date = review.find('span', class_='section-review-publish-date-and-source').find('span').text
             __rating = __rating.split("/")
-            numerator = int(__rating[0])
-            denominator = int(__rating[1])
-            rating = (numerator/denominator)*5
-            
+            numerator = float(__rating[0])
+            denominator = float(__rating[1])
+            rating = (numerator / denominator) * 5
+
         c = pdt.Constants()
         p = pdt.Calendar(c)
         absolute_date = datetime(*p.parse(relative_date)[0][:6])
@@ -186,7 +185,7 @@ class GoogleMapsScraper:
 
         except Exception as e:
             n_photos = 0
-            
+
         try:
             n_reviews = review.find('div', class_='section-review-subtitle').find_all('span')[1].text.replace("・", "")
             print(colored(n_reviews, 'red'))
@@ -215,9 +214,7 @@ class GoogleMapsScraper:
 
         return item
 
-
     def __parse_place(self, response):
-
         place = {}
         try:
             place['overall_rating'] = float(response.find('div', class_='gm2-display-2').text.replace(',', '.'))
@@ -225,19 +222,20 @@ class GoogleMapsScraper:
             place['overall_rating'] = 'NOT FOUND'
 
         try:
-            place['n_reviews'] = int(response.find('div', class_='gm2-caption').text.replace('.', '').replace(',','').split(' ')[0])
+            place['n_reviews'] = int(
+                response.find('div', class_='gm2-caption').text.replace('.', '').replace(',', '').split(' ')[0])
         except:
             place['n_reviews'] = 0
 
         return place
-
 
     # expand review description
     def __expand_reviews(self):
         # use XPath to load complete reviews
         while True:
             try:
-                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
+                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
+                    (By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
                 print(colored(links, 'red'))
                 links.click()
             except:
@@ -246,9 +244,9 @@ class GoogleMapsScraper:
     # load more reviews
     def more_reviews(self):
         # use XPath to load complete reviews
-        #allxGeDnJMl__text gm2-button-alt
-        #<button ved="1i:1,t:18519,e:0,p:kPkcYIz-Dtql-QaL1YawDw:1969" jstcache="1202" jsaction="pane.reviewChart.moreReviews" class="gm2-button-alt jqnFjrOWMVU__button-blue" jsan="7.gm2-button-alt,7.jqnFjrOWMVU__button-blue,0.ved,22.jsaction">14 reviews</button>
-        #<button aria-label="14 reviews" vet="3648" jsaction="pane.rating.moreReviews" jstcache="1010" class="widget-pane-link" jsan="7.widget-pane-link,0.aria-label,0.vet,0.jsaction">14 reviews</button>
+        # allxGeDnJMl__text gm2-button-alt
+        # <button ved="1i:1,t:18519,e:0,p:kPkcYIz-Dtql-QaL1YawDw:1969" jstcache="1202" jsaction="pane.reviewChart.moreReviews" class="gm2-button-alt jqnFjrOWMVU__button-blue" jsan="7.gm2-button-alt,7.jqnFjrOWMVU__button-blue,0.ved,22.jsaction">14 reviews</button>
+        # <button aria-label="14 reviews" vet="3648" jsaction="pane.rating.moreReviews" jstcache="1010" class="widget-pane-link" jsan="7.widget-pane-link,0.aria-label,0.vet,0.jsaction">14 reviews</button>
         links = self.driver.find_elements_by_xpath('//button[@jsaction=\'pane.reviewChart.moreReviews\']')
         print('LINKS HERE', links)
         for l in links:
@@ -260,10 +258,10 @@ class GoogleMapsScraper:
         time.sleep(0.1)
 
     def __scroll(self):
-        scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
+        scrollable_div = self.driver.find_element_by_css_selector(
+            'div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
         self.driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
-        #self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-
+        # self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     def __get_logger(self):
         # create logger
@@ -285,7 +283,6 @@ class GoogleMapsScraper:
 
         return logger
 
-
     def __get_driver(self, debug=False):
         options = Options()
 
@@ -298,20 +295,19 @@ class GoogleMapsScraper:
         options.add_argument("--lang=en-GB")
         input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
         # input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
-        # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install(), verify=False)                                      )
+        # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install(), verify=False)
 
         return input_driver
-
 
     # util function to clean special characters
     def __filter_string(self, str):
         strOut = str.replace('\r', ' ').replace('\n', ' ').replace('\t', ' ')
         return strOut
-    
-    def __filter_digit(self, string:str):
+
+    def __filter_digit(self, string: str):
         temp = str()
         for char in string:
             if 48 <= ord(char) <= 59:
                 temp += char
-                
-        return temp;
+
+        return temp

@@ -4,14 +4,16 @@ Created on Sat Feb 13 02:33:00 2021
 
 @author: Mohammad.FT
 """
-import os
 import argparse
+import os
+from itertools import cycle
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-import PxPDynamicProxy
-from pathlib import Path
-from itertools import cycle
 from termcolor import colored
+
+import PxPDynamicProxy
 from PxPGoogleMaps import GoogleMapsScraper
 
 ref = {'all_reviews': 0, 'google': 1, 'priceline': 2, 'expedia': 3, 'orbitz': 4, 'travelocity': 5, 'wotif': 6,
@@ -91,7 +93,7 @@ def crawler(args):
 
                         if len(reviews) == 0:
                             if visited < 100:
-                                if visited % 10 == 0 or n > 1600:
+                                if visited % 10 == 0 or n >= 1600:
                                     q = input("some error occurred, rotate IP?[y/N]:")
                                     if q.lower() == 'n': break
                                 # scraper.driver.refresh()
@@ -108,7 +110,7 @@ def crawler(args):
                     sheet = np.array(list_reviews)
                     temp_dataframe = pd.DataFrame(sheet, columns=HEADER)
                     temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
-                #writer.close()
+                writer.close()
                 count += 1
 
 
