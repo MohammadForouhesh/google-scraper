@@ -9,7 +9,7 @@ import logging
 import time
 import traceback
 from datetime import datetime
-
+import numpy as np
 import parsedatetime as pdt
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -118,8 +118,7 @@ class GoogleMapsScraper:
     def get_reviews(self, offset):
         # scroll to load reviews
         # wait for other reviews to load (ajax)
-        time.sleep(1)
-
+        #time.sleep(1)
         self.__scroll()
         # expand review text
         self.__expand_reviews()
@@ -254,13 +253,39 @@ class GoogleMapsScraper:
         time.sleep(1)
 
     def scroll(self):
-        self.__scroll()
-        time.sleep(0.1)
+        height = list()
+        height.append(self.__scroll())
+        iter_index = 0
+        spinner = False
+        while height[-1] - height[0] < 100000 and iter_index < 10000:
+            try: height.append(self.__scroll())
+            except Exception as e:
+                print(e)
+                pass
+            iter_index += 1
+
+            if not self.driver.find_elements_by_class_name("section-loading-spinner")[-1].is_displayed():
+                print(colored("End of document!", 'yellow'))
+                spinner = True
+                break
+            np_height = np.array(height)
+            print(iter_index)
+            print(np_height[-20:].std())
+            if np_height[-20:].std() < 0.5 and iter_index > 20:
+                break
+
+        return height[-1] - height[0], spinner
 
     def __scroll(self):
         scrollable_div = self.driver.find_element_by_css_selector(
             'div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
+
         self.driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
+
+        section_layout = self.driver.find_elements_by_class_name('section-layout')[-1]
+        size = section_layout.size
+        h1 = size['height']
+        return h1
         # self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     def __get_logger(self):

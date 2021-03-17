@@ -4,6 +4,10 @@ Created on Sat Feb 13 02:33:00 2021
 
 @author: Mohammad.FT
 """
+
+import platform    # For getting the operating system name
+import subprocess  # For executing a shell command
+
 import argparse
 import os
 from itertools import cycle
@@ -57,7 +61,7 @@ def crawler(args):
                 else:
                     error = scraper.sort_by(url, ind[args.sort_by])
                     try: error = scraper.channeling(ref[args.channel])
-                    except IndexError as e:
+                    except:
                         sheet = np.array(['error, no such channel'])
                         temp_dataframe = pd.DataFrame(sheet)
                         temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
@@ -76,11 +80,10 @@ def crawler(args):
                     list_reviews = list()
                     visited = 1
                     while n < args.N:
-                        for iter_scroll in range(0, 20):
-                            try:
-                                scraper.scroll()
-                            except:
-                                pass
+                        delta_l, spinner = scraper.scroll()
+                        print(colored("differential of height after scrolling: " + str(delta_l), 'magenta'))
+                        if delta_l == 0:
+                            visited += 1
 
                         print(colored('[Review ' + str(n) + ']', 'cyan'))
                         reviews = scraper.get_reviews(n)
@@ -93,20 +96,22 @@ def crawler(args):
 
                         if len(reviews) == 0:
                             if visited < 100:
-                                if visited % 10 == 0 or n >= 1600:
+                                if visited % 10 == 0 or n >= 1500 or spinner:
                                     q = input("some error occurred, rotate IP?[y/N]:")
                                     if q.lower() == 'n': break
                                 # scraper.driver.refresh()
                                 # scraper.sort_by(url, ind[args.sort_by])
+                                #while not ping("google.com"):
                                 proxy = next(proxy_iter).split(":")
                                 PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
+
                                 visited += 1
                             else:
                                 break
                         else:
                             visited = 1
 
-                    print(list_reviews)
+                    #print(list_reviews)
                     sheet = np.array(list_reviews)
                     temp_dataframe = pd.DataFrame(sheet, columns=HEADER)
                     temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
@@ -118,11 +123,11 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
     parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
     parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--all', dest='all', type=bool, default=True,
+    parser.add_argument('--all', dest='all', type=bool, default=False,
                         help="crawl over every possible option and choice.")
     parser.add_argument('--sort_by', type=str, default='most_relevant',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
-    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
+    parser.add_argument('--channel', dest='channel', type=str, default='expedia',
                         help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
                              "travelocity, wotif, ebookers and trip")
     parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
