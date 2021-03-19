@@ -118,7 +118,7 @@ class GoogleMapsScraper:
     def get_reviews(self, offset):
         # scroll to load reviews
         # wait for other reviews to load (ajax)
-        #time.sleep(1)
+        time.sleep(1)
         self.__scroll()
         # expand review text
         self.__expand_reviews()
@@ -130,6 +130,12 @@ class GoogleMapsScraper:
             if index >= offset:
                 parsed_reviews.append(self.__parse(review))
                 print(self.__parse(review))
+                self.driver.execute_script("""
+                    var element = document.querySelector(".section-review-review-content");
+                    if (element)
+                        element.parentNode.removeChild(element);
+                    """)
+        rblock.clear()
 
         return parsed_reviews
 
@@ -231,14 +237,29 @@ class GoogleMapsScraper:
     # expand review description
     def __expand_reviews(self):
         # use XPath to load complete reviews
+        temp_link = None
+        visited = 0
         while True:
             try:
                 links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
                     (By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
                 print(colored(links, 'red'))
                 links.click()
+                if links == temp_link:
+                    visited += 1
+                    if visited > 10:
+                        # links.clear()
+                        self.driver.execute_script("""
+                            var element = document.querySelector(".section-expand-review.blue-link");
+                            element.click()
+                            if (element)
+                                element.parentNode.removeChild(element);
+                            """)
+                        # raise Exception("")
+                else: visited = 1
+                temp_link = links
             except:
-                break;
+                break
 
     # load more reviews
     def more_reviews(self):
@@ -269,9 +290,7 @@ class GoogleMapsScraper:
                 spinner = True
                 break
             np_height = np.array(height)
-            print(iter_index)
-            print(np_height[-20:].std())
-            if np_height[-20:].std() < 0.5 and iter_index > 20:
+            if np_height[-300:].std() == 0 and iter_index > 300:
                 break
 
         return height[-1] - height[0], spinner
