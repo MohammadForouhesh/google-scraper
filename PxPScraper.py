@@ -4,7 +4,7 @@ Created on Sat Feb 13 02:33:00 2021
 
 @author: Mohammad.FT
 """
-
+import gc
 import os
 import argparse
 import numpy as np
@@ -15,9 +15,11 @@ from itertools import cycle
 from datetime import datetime
 from termcolor import colored
 
-
 import PxPDynamicProxy
 from PxPGoogleMaps import GoogleMapsScraper
+
+
+gc.enable()
 
 ref = {'all_reviews': 0, 'google': 1, 'priceline': 2, 'expedia': 3, 'orbitz': 4, 'travelocity': 5, 'wotif': 6,
        'ebookers': 7, 'trip': 8, 'hotels.com': 9}
@@ -29,7 +31,6 @@ HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "a
 
 
 def csv_writer(name, channel, ind_sort_by, path='data/'):
-    name = name.replace("+", "").replace("%26", "")
     Path(path + name).mkdir(parents=True, exist_ok=True)
     outfile = path + name + "/" + channel + "_" + ind_sort_by + '_gm_reviews.xlsx'
     writer = pd.ExcelWriter(outfile)
@@ -49,20 +50,22 @@ def crawler(args):
         for url in urls_file:
             count = 0
             with GoogleMapsScraper(debug=args.debug) as scraper:
-                index = url.find("/", 34)
-                print(url[34:index] + str(count))
-                # store reviews in CSV file
-                writer, path = csv_writer(url[34:index], args.channel, args.sort_by)
-
                 if args.place: print(scraper.get_account(url))
 
                 else:
                     error_type1 = scraper.sort_by(url, ind[args.sort_by])
                     error_type2 = scraper.channeling(ref[args.channel])
                     print((error_type1, error_type2))
+
+                index = url.find("/", 34)
+                print(url[34:index] + str(count))
                 
-                if error_type2 == 1 and exists(path.replace(args.sort_by, 'all_reviews')): continue
-                    
+                name = url[34:index].replace("+", "").replace("%26", "")
+                outfile = 'data/' + name + "/all_reviews_" + args.sort_by + '_gm_reviews.xlsx'
+
+                if error_type2 == 1 and exists(outfile): continue
+                
+                writer, path = csv_writer(name, args.channel, args.sort_by)
                 if error_type1 == 0:
                     n = 0
                     list_reviews = list()
@@ -101,7 +104,8 @@ def crawler(args):
                         temp_dataframe = pd.DataFrame(sheet, columns=HEADER)
                         temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
                     scraper.driver.refresh()
-                writer.close()
+                try:    writer.close()
+                except: del writer; os.remove(path)
                 count += 1
 
 
@@ -109,7 +113,7 @@ if __name__ == '__main__':
     startTime = datetime.now()
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
     parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
-    parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
+    parser.add_argument('--i', type=str, default='CanadaCasinos-URLS.txt', help='target URLs file')
     parser.add_argument('--all', dest='all', type=bool, default=True,
                         help="crawl over every possible option and choice.")
     parser.add_argument('--sort_by', type=str, default='newest',

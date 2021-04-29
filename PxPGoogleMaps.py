@@ -18,7 +18,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from termcolor import colored
-from webdriver_manager.firefox import GeckoDriverManager
+from webdriver_manager.chrome import ChromeDriverManager
+#from webdriver_manager.firefox import GeckoDriverManager
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
 MAX_WAIT = 10
@@ -74,6 +75,7 @@ class GoogleMapsScraper:
                 return -1
 
         # element of the list specified according to ind
+        time.sleep(1)
         recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ind]
         recent_rating_bt.click()
 
@@ -108,7 +110,8 @@ class GoogleMapsScraper:
                 print(Exception("No such menu"))
                 return -1
 
-        # element of the list specified according to ind
+        # element of the list specified according to ref
+        time.sleep(1)
         try:
             recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ref]
             recent_rating_bt.click()
@@ -245,7 +248,8 @@ class GoogleMapsScraper:
         visited = 0
         while True:
             try:
-                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
+                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH,
+                        "(//button[@class=\'section-expand-review mapsConsumerUiCommonButton__blue-link __web-inspector-hide-shortcut__\'])[position()=1]")))
                 print(colored(links, 'red'))
                 links.click()
                 if links == temp_link:
@@ -339,8 +343,8 @@ class GoogleMapsScraper:
 
         options.add_argument("--disable-notifications")
         options.add_argument("--lang=en-GB")
-        input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
-        # input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
+        # input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
+        input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=options)
         # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install(), verify=False)
 
         return input_driver
