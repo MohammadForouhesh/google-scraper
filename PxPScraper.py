@@ -5,15 +5,14 @@ Created on Sat Feb 13 02:33:00 2021
 @author: Mohammad.FT
 """
 
-import argparse
 import os
-from itertools import cycle
-from pathlib import Path
-
-from datetime import datetime
-
+import argparse
 import numpy as np
 import pandas as pd
+from pathlib import Path
+from os.path import exists
+from itertools import cycle
+from datetime import datetime
 from termcolor import colored
 
 
@@ -55,22 +54,16 @@ def crawler(args):
                 # store reviews in CSV file
                 writer, path = csv_writer(url[34:index], args.channel, args.sort_by)
 
-                if args.place:
-                    print(scraper.get_account(url))
+                if args.place: print(scraper.get_account(url))
 
                 else:
-                    error = scraper.sort_by(url, ind[args.sort_by])
-                    try: error = scraper.channeling(ref[args.channel])
-                    except:
-                        sheet = np.array(['error, no such channel'])
-                        temp_dataframe = pd.DataFrame(sheet)
-                        temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
-                        writer.close()
-                        os.remove(path)
-                        continue
-                    print(error)
-
-                if error == 0:
+                    error_type1 = scraper.sort_by(url, ind[args.sort_by])
+                    error_type2 = scraper.channeling(ref[args.channel])
+                    print((error_type1, error_type2))
+                
+                if error_type2 == 1 and exists(path.replace(args.sort_by, 'all_reviews')): continue
+                    
+                if error_type1 == 0:
                     n = 0
                     list_reviews = list()
                     visited = 1
@@ -100,7 +93,7 @@ def crawler(args):
                             else:
                                 visited = 1
                     except Exception as e:
-                        print(colored("ERROR:" + e.code, 'red'))
+                        print(colored("ERROR:" + str(e), 'red'))
 
                     print(list_reviews)
                     if len(list_reviews) > 0:
@@ -119,7 +112,7 @@ if __name__ == '__main__':
     parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
     parser.add_argument('--all', dest='all', type=bool, default=True,
                         help="crawl over every possible option and choice.")
-    parser.add_argument('--sort_by', type=str, default='most_relevant',
+    parser.add_argument('--sort_by', type=str, default='newest',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
     parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
                         help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
@@ -132,7 +125,7 @@ if __name__ == '__main__':
     parser.add_argument('--proxy', dest='proxy', default="refined_proxies.txt",
                         help='Add proxy file to rotate IP address dynamically.')
 
-    parser.set_defaults(place=False, debug=False, source=False)
+    parser.set_defaults(place=False, debug=True, source=False)
 
     args = parser.parse_args()
     if not args.all: crawler(args)

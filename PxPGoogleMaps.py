@@ -31,6 +31,7 @@ class GoogleMapsScraper:
         self.debug = debug
         self.driver = self.__get_driver()
         self.logger = self.__get_logger()
+        self.type = None
 
     def __enter__(self):
         return self
@@ -56,16 +57,17 @@ class GoogleMapsScraper:
             try:
                 try:
                     menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))
+                    self.type = 1
                 except:
-                    menu_bt = wait.until(EC.element_to_be_clickable(
-                        (By.XPATH, "(//div[@class=\'gm2-body-1 cYrDcjyGO77__label\'])[position()=2]")))
-
+                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class=\'gm2-body-1 mapsConsumerUiSubviewSectionGm2Dropdown__label\'])[position()=2]")))
+                    self.type = 2
+                    
                 menu_bt.click()
                 clicked = True
                 time.sleep(3)
             except Exception as e:
                 tries += 1
-                self.logger.warn('Failed to click recent button')
+                self.logger.warning('Failed to click recent button')
 
             # failed to open the dropdown
             if tries == MAX_RETRY:
@@ -81,6 +83,8 @@ class GoogleMapsScraper:
         return 0
 
     def channeling(self, ref):
+        print(self.type)
+        if self.type == 1: return 1
         wait = WebDriverWait(self.driver, MAX_WAIT)
 
         # open dropdown menu
@@ -89,29 +93,29 @@ class GoogleMapsScraper:
 
         while not clicked and tries < MAX_RETRY:
             try:
-                try:
-                    menu_bt = wait.until(EC.element_to_be_clickable(
-                        (By.XPATH, "(//div[@class=\'gm2-body-1 cYrDcjyGO77__label\'])[position()=1]")))
-                except:
-                    pass
+                try:    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class=\'gm2-body-1 mapsConsumerUiSubviewSectionGm2Dropdown__label\'])[position()=1]")))
+                except: pass
 
                 menu_bt.click()
                 clicked = True
                 time.sleep(3)
             except Exception as e:
                 tries += 1
-                self.logger.warn('Failed to click recent button')
+                self.logger.warning('Failed to click channeling button')
 
             # failed to open the dropdown
             if tries == MAX_RETRY:
-                raise Exception("No such menu")
+                print(Exception("No such menu"))
+                return -1
 
         # element of the list specified according to ind
-        recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ref]
-        recent_rating_bt.click()
+        try:
+            recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ref]
+            recent_rating_bt.click()
 
-        # wait to load review (ajax call)
-        time.sleep(5)
+            # wait to load review (ajax call)
+            time.sleep(5)
+        except: pass
 
         return 0
 
@@ -241,8 +245,7 @@ class GoogleMapsScraper:
         visited = 0
         while True:
             try:
-                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
-                    (By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
+                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//button[@class=\'section-expand-review blue-link\'])[position()=1]")))
                 print(colored(links, 'red'))
                 links.click()
                 if links == temp_link:
@@ -285,7 +288,7 @@ class GoogleMapsScraper:
                 pass
             iter_index += 1
 
-            if not self.driver.find_elements_by_class_name("section-loading-spinner")[-1].is_displayed():
+            if not self.driver.find_elements_by_class_name("mapsConsumerUiSubviewSectionLoading__section-loading-spinner")[-1].is_displayed():
                 print(colored("End of document!", 'yellow'))
                 spinner = True
                 break
@@ -296,9 +299,8 @@ class GoogleMapsScraper:
         return height[-1] - height[0], spinner
 
     def __scroll(self):
-        scrollable_div = self.driver.find_element_by_css_selector(
-            'div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
-
+        #scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
+        scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.mapsConsumerUiCommonScrollable__scrollable-y.mapsConsumerUiCommonScrollable__scrollable-show')
         self.driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
 
         section_layout = self.driver.find_elements_by_class_name('section-layout')[-1]
