@@ -70,33 +70,33 @@ def crawler(args):
                     n = 0
                     list_reviews = list()
                     visited = 1
-                    try:
-                        while n < args.N:
-                            print(colored('[Review ' + str(n) + ']', 'cyan'))
-                            delta_l, spinner = scraper.scroll()
-                            print(colored("differential of height after scrolling: " + str(delta_l), 'magenta'))
+                    #try:
+                    while n < args.N:
+                        print(colored('[Review ' + str(n) + ']', 'cyan'))
+                        delta_l, spinner = scraper.scroll()
+                        print(colored("differential of height after scrolling: " + str(delta_l), 'magenta'))
 
-                            reviews = scraper.get_reviews(n)
-                            for r in reviews:
-                                row_data = list(r.values())
-                                if args.source:
-                                    row_data.append(url[:-1])
-                                list_reviews.append(row_data)
-                            n += len(reviews)
+                        reviews = scraper.get_reviews(n)
+                        for r in reviews:
+                            row_data = list(r.values())
+                            if args.source:
+                                row_data.append(url[:-1])
+                            list_reviews.append(row_data)
+                        n += len(reviews)
 
-                            if len(reviews) == 0:
-                                visited += 1
-                                if n >= 1500 or spinner or visited > 20:
-                                    break
-                                if visited % 5 == 0:
-                                    proxy = next(proxy_iter)
-                                    print("rotating ip")
-                                    proxy = proxy.split(":")
-                                    PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
-                            else:
-                                visited = 1
-                    except Exception as e:
-                        print(colored("ERROR:" + str(e), 'red'))
+                        if len(reviews) == 0:
+                            visited += 1
+                            if n >= 1500 or spinner or visited > 20:
+                                break
+                            #if visited % 5 == 0:
+                            #    proxy = next(proxy_iter)
+                            #    print("rotating ip")
+                            #    proxy = proxy.split(":")
+                            #    PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
+                        else:
+                            visited = 1
+                    #except Exception as e:
+                    #    print(colored("ERROR:" + str(e), 'red'))
 
                     print(list_reviews)
                     if len(list_reviews) > 0:
@@ -105,7 +105,7 @@ def crawler(args):
                         temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
                     scraper.driver.refresh()
                 try:    writer.close()
-                except: del writer; os.remove(path)
+                except: del writer#; os.remove(path)
                 count += 1
 
 
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     startTime = datetime.now()
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
     parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
-    parser.add_argument('--i', type=str, default='CanadaCasinos-URLS.txt', help='target URLs file')
+    parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
     parser.add_argument('--all', dest='all', type=bool, default=True,
                         help="crawl over every possible option and choice.")
     parser.add_argument('--sort_by', type=str, default='newest',
