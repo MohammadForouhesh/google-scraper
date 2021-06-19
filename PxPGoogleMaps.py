@@ -18,8 +18,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from termcolor import colored
-# from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
+# from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.firefox import GeckoDriverManager
 # from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
@@ -139,7 +140,7 @@ class GoogleMapsScraper:
                 parsed_reviews.append(self.__parse(review))
                 print(self.__parse(review))
                 self.driver.execute_script("""
-                    var element = document.querySelector(".ODSEW-ShBeI-ShBeI-content");
+                    var element = document.querySelector(".ODSEW-ShBeI-content");
                     if (element)
                         element.parentNode.removeChild(element);
                     """)
@@ -228,7 +229,7 @@ class GoogleMapsScraper:
         item['n_review_user'] = n_reviews
         item['n_photo_user'] = n_photos
         item['url_user'] = user_url
-        print(item)
+        
         return item
 
     def __parse_place(self, response):
@@ -256,7 +257,7 @@ class GoogleMapsScraper:
                     if visited > 10:
                         # links.clear()
                         self.driver.execute_script("""
-                            var element = document.querySelector(".section-expand-review.blue-link");
+                            var element = document.querySelector(".ODSEW-KoToPc-ShBeI.gXqMYb-hSRGPd");
                             element.click()
                             if (element)
                                 element.parentNode.removeChild(element);
@@ -282,10 +283,13 @@ class GoogleMapsScraper:
     def scroll(self):
         height = list()
         height.append(self.__scroll())
+        self.__expand_reviews()
         iter_index = 0
         spinner = False
-        while height[-1] - height[0] < 100000 and iter_index < 10000:
-            try: height.append(self.__scroll())
+        while height[-1] - height[0] < 50000000 and iter_index < 500000:
+            try:
+                height.append(self.__scroll())
+                self.__expand_reviews()
             except Exception as e:
                 print(e)
                 pass
@@ -334,16 +338,17 @@ class GoogleMapsScraper:
         return logger
 
     def __get_driver(self, debug=False):
-        options = Options()
-
-        if not self.debug: options.add_argument("--headless")
-        else:              options.add_argument("--window-size=1366,768")
-
-        options.add_argument("--disable-notifications")
-        options.add_argument("--lang=en-GB")
-        input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
-        # input_driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        chrome_options = Options()
+        
+        # if not self.debug: chrome_options.add_argument("--headless")
+        # else:              chrome_options.add_argument("--window-size=1366,768")
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--no-sandbox')
+        chrome_options.add_argument('--disable-dev-shm-usage')
+        # input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
+        input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+        print("Chrome Headless Browser Invoked")
 
         return input_driver
 

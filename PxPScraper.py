@@ -86,7 +86,7 @@ def crawler(args):
 
                         if len(reviews) == 0:
                             visited += 1
-                            if n >= 1500 or spinner or visited > 20:
+                            if n >= 1500 or spinner or visited > 10:
                                 break
                             #if visited % 5 == 0:
                             #    proxy = next(proxy_iter)
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--proxy', dest='proxy', default="refined_proxies.txt",
                         help='Add proxy file to rotate IP address dynamically.')
 
-    parser.set_defaults(place=False, debug=True, source=False)
+    parser.set_defaults(place=False, debug=False, source=False)
 
     args = parser.parse_args()
     if not args.all: crawler(args)
