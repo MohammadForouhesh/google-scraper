@@ -121,15 +121,13 @@ if __name__ == '__main__':
     parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
                         help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
                              "travelocity, wotif, ebookers and trip")
-    parser.add_argument('--place', dest='place', default=True, action='store_true', help='Scrape place metadata')
-    parser.add_argument('--debug', dest='debug', action='store_true',
+    parser.add_argument('--place', dest='place', default=False, action='store_true', help='Scrape place metadata')
+    parser.add_argument('--debug', dest='debug', default=False, action='store_true',
                         help='Run scraper using browser graphical interface')
-    parser.add_argument('--source', dest='source', default=True, action='store_true',
+    parser.add_argument('--source', dest='source', default=False, action='store_true',
                         help='Add source url to CSV file (for multiple urls in a single file)')
     parser.add_argument('--proxy', dest='proxy', default="refined_proxies.txt",
                         help='Add proxy file to rotate IP address dynamically.')
-
-    parser.set_defaults(place=False, debug=True, source=False)
 
     args = parser.parse_args()
     if not args.all: crawler(args)
