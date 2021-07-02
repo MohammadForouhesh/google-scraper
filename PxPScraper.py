@@ -60,7 +60,7 @@ def crawler(args):
                 index = url.find("/", 34)
                 print(url[34:index] + str(count))
                 
-                name = url[34:index].replace("+", "").replace("%26", "")
+                name = url[34:index].replace("+", "").replace("%26", "") + str(count)
                 outfile = 'data/' + name + "/all_reviews_" + args.sort_by + '_gm_reviews.xlsx'
 
                 if error_type2 == 1 and exists(outfile): continue
@@ -113,10 +113,10 @@ if __name__ == '__main__':
     startTime = datetime.now()
     parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
     parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
-    parser.add_argument('--i', type=str, default='urls.txt', help='target URLs file')
-    parser.add_argument('--all', dest='all', type=bool, default=True,
+    parser.add_argument('--i', type=str, default='LCBO-ReviewsLink.txt', help='target URLs file')
+    parser.add_argument('--all', dest='all', type=bool, default=False,
                         help="crawl over every possible option and choice.")
-    parser.add_argument('--sort_by', type=str, default='newest',
+    parser.add_argument('--sort_by', type=str, default='most_relevant',
                         help='sort by most_relevant, newest, highest_rating or lowest_rating')
     parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
                         help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     parser.add_argument('--proxy', dest='proxy', default="refined_proxies.txt",
                         help='Add proxy file to rotate IP address dynamically.')
 
-    parser.set_defaults(place=False, debug=False, source=False)
+    parser.set_defaults(place=False, debug=True, source=False)
 
     args = parser.parse_args()
     if not args.all: crawler(args)

@@ -127,6 +127,7 @@ class GoogleMapsScraper:
         # scroll to load reviews
         # wait for other reviews to load (ajax)
         time.sleep(1)
+        print('kir1')
         self.__scroll()
         # expand review text
         self.__expand_reviews()
@@ -310,11 +311,9 @@ class GoogleMapsScraper:
         #scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
         scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.cYB2Ge-oHo7ed.cYB2Ge-ti6hGc')
         self.driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
-
+        
         section_layout = self.driver.find_elements_by_class_name('section-layout')[-1]
-        size = section_layout.size
-        h1 = size['height']
-        return h1
+        return section_layout.size['height']
         # self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
     def __get_logger(self):
@@ -337,14 +336,14 @@ class GoogleMapsScraper:
 
         return logger
 
-    def __get_driver(self, debug=False):
+    def __get_driver(self):
         chrome_options = Options()
         
-        # if not self.debug: chrome_options.add_argument("--headless")
-        # else:              chrome_options.add_argument("--window-size=1366,768")
-        chrome_options.add_argument('--headless')
-        chrome_options.add_argument('--no-sandbox')
-        chrome_options.add_argument('--disable-dev-shm-usage')
+        if self.debug: chrome_options.add_argument("--window-size=1366,768")
+        else:
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
         # input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
         input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
         # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install())
