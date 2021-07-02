@@ -61,8 +61,9 @@ def crawler(args):
                 print(url[34:index] + str(count))
                 
                 name = url[34:index].replace("+", "").replace("%26", "") + str(count)
+                count += 1
                 outfile = 'data/' + name + "/all_reviews_" + args.sort_by + '_gm_reviews.xlsx'
-
+                
                 if error_type2 == 1 and exists(outfile): continue
                 
                 writer, path = csv_writer(name, args.channel, args.sort_by)
@@ -106,7 +107,7 @@ def crawler(args):
                     scraper.driver.refresh()
                 try:    writer.close()
                 except: del writer#; os.remove(path)
-                count += 1
+            
 
 
 if __name__ == '__main__':
