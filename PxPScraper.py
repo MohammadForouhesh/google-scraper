@@ -45,10 +45,9 @@ def crawler(args):
     doc = proxy_file.read()
     lines = doc.split('\n')
     proxy_iter = cycle(lines)
-
+    count = 0
     with open(args.i, 'r') as urls_file:
         for url in urls_file:
-            count = 0
             with GoogleMapsScraper(debug=args.debug) as scraper:
                 if args.place: print(scraper.get_account(url))
 
