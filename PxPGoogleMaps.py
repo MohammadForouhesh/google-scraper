@@ -127,7 +127,6 @@ class GoogleMapsScraper:
         # scroll to load reviews
         # wait for other reviews to load (ajax)
         time.sleep(1)
-        print('kir1')
         self.__scroll()
         # expand review text
         self.__expand_reviews()
