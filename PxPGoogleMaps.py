@@ -78,8 +78,11 @@ class GoogleMapsScraper:
         # element of the list specified according to ind
         time.sleep(1)
         tries = 0
-        while tries < MAX_RETRY:
-            try:    recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ind]
+        clicked = False
+        while not clicked and tries < MAX_RETRY:
+            try:
+                recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ind]
+                clicked = True
             except:
                 tries += 1
                 self.logger.warning('Failed to click menu buttons')
