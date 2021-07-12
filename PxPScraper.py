@@ -86,7 +86,7 @@ def crawler(args):
 
                         if len(reviews) == 0:
                             visited += 1
-                            if n >= 1500 or spinner or visited > 10:
+                            if n >= 1500 or spinner or visited > 4:
                                 break
                             #if visited % 5 == 0:
                             #    proxy = next(proxy_iter)
