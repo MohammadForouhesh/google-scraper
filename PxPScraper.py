@@ -5,17 +5,8 @@ Created on Sat Feb 13 02:33:00 2021
 @author: Mohammad.FT
 """
 import gc
-import os
-import argparse
-import numpy as np
-import pandas as pd
-from pathlib import Path
-from os.path import exists
-from itertools import cycle
-from datetime import datetime
+from excelStorage import PlaceInfo
 from termcolor import colored
-
-import PxPDynamicProxy
 from PxPGoogleMaps import GoogleMapsScraper
 
 
@@ -30,115 +21,59 @@ HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "a
                    'n_review_user', 'n_photo_user', 'url_user', 'url_source']
 
 
-def csv_writer(name, channel, ind_sort_by, path='data/'):
-    Path(path + name).mkdir(parents=True, exist_ok=True)
-    outfile = path + name + "/" + channel + "_" + ind_sort_by + '_gm_reviews.xlsx'
-    writer = pd.ExcelWriter(outfile)
-    return writer, outfile
-
-
-def crawler(args):
-    # store reviews in CSV file
-    # writer = csv_writer(args.i, args.channel, args.sort_by)
-
-    proxy_file = open(args.proxy)
-    doc = proxy_file.read()
-    lines = doc.split('\n')
-    proxy_iter = cycle(lines)
-    count = 0
+def crawler(args, storage):
+    global MAX_REVIEW_COUNT_PER_URL
+    MAX_REVIEW_COUNT_PER_URL = args.N
     with open(args.i, 'r') as urls_file:
         for url in urls_file:
             with GoogleMapsScraper(debug=args.debug) as scraper:
-                if args.place: print(scraper.get_account(url))
-
-                else:
-                    error_type1 = scraper.sort_by(url, ind[args.sort_by])
-                    error_type2 = scraper.channeling(ref[args.channel])
-                    print((error_type1, error_type2))
-
-                index = url.find("/", 34)
-                print(url[34:index] + str(count))
+                name, location = get_place_info(url)
                 
-                name = url[34:index].replace("+", "").replace("%26", "") + str(count)
-                count += 1
-                outfile = 'data/' + name + "/all_reviews_" + args.sort_by + '_gm_reviews.xlsx'
-                
-                if error_type2 == 1 and exists(outfile): continue
-                
-                writer, path = csv_writer(name, args.channel, args.sort_by)
-                if error_type1 == 0:
-                    n = 0
-                    list_reviews = list()
-                    visited = 1
-                    #try:
-                    while n < args.N:
-                        print(colored('[Review ' + str(n) + ']', 'cyan'))
-                        delta_l, spinner = scraper.scroll()
-                        print(colored("differential of height after scrolling: " + str(delta_l), 'magenta'))
+                place_info = PlaceInfo(name, location, args.channel, args.sort_by)
+                if not storage.continue_process(place_info): continue
 
-                        reviews = scraper.get_reviews(n)
-                        for r in reviews:
-                            row_data = list(r.values())
-                            if args.source:
-                                row_data.append(url[:-1])
-                            list_reviews.append(row_data)
-                        n += len(reviews)
-
-                        if len(reviews) == 0:
-                            visited += 1
-                            if n >= 1500 or spinner or visited > 4:
-                                break
-                            #if visited % 5 == 0:
-                            #    proxy = next(proxy_iter)
-                            #    print("rotating ip")
-                            #    proxy = proxy.split(":")
-                            #    PxPDynamicProxy.set_proxy(scraper.driver, http_addr=proxy[0], http_port=int(proxy[1]))
-                        else:
-                            visited = 1
-                    #except Exception as e:
-                    #    print(colored("ERROR:" + str(e), 'red'))
-
-                    print(list_reviews)
-                    if len(list_reviews) > 0:
-                        sheet = np.array(list_reviews)
-                        temp_dataframe = pd.DataFrame(sheet, columns=HEADER)
-                        temp_dataframe.to_excel(writer, sheet_name=url[34:index] + str(count))
-                    scraper.driver.refresh()
-                try:    writer.close()
-                except: del writer#; os.remove(path)
-            
+                list_reviews = scraper_review(scraper, url, args.channel, args.sort_by)
+                if len(list_reviews) > 0:
+                    storage.save_reviews(place_info, list_reviews)
+                scraper.driver.refresh()
 
 
-if __name__ == '__main__':
-    startTime = datetime.now()
-    parser = argparse.ArgumentParser(description='Google Maps reviews scraper.')
-    parser.add_argument('--N', type=int, default=2000, help='Number of reviews to scrape')
-    parser.add_argument('--i', type=str, default='LCBO-ReviewsLink.txt', help='target URLs file')
-    parser.add_argument('--all', dest='all', type=bool, default=False,
-                        help="crawl over every possible option and choice.")
-    parser.add_argument('--sort_by', type=str, default='most_relevant',
-                        help='sort by most_relevant, newest, highest_rating or lowest_rating')
-    parser.add_argument('--channel', dest='channel', type=str, default='all_reviews',
-                        help="change reviews channel by all_reviews, google, hotels.com, priceline, expedia, orbitz, "
-                             "travelocity, wotif, ebookers and trip")
-    parser.add_argument('--place', dest='place', default=False, action='store_true', help='Scrape place metadata')
-    parser.add_argument('--debug', dest='debug', default=False, action='store_true',
-                        help='Run scraper using browser graphical interface')
-    parser.add_argument('--source', dest='source', default=False, action='store_true',
-                        help='Add source url to CSV file (for multiple urls in a single file)')
-    parser.add_argument('--proxy', dest='proxy', default="refined_proxies.txt",
-                        help='Add proxy file to rotate IP address dynamically.')
+def get_place_info(url):
+    index = url.find("/", 34)
+    index_latitude = url.find("@", index)
+    index_longitude = url.find(",", index_latitude)
+    name = url[34:index].replace("+", "").replace("%26", "")
+    location = (url[index_latitude:index_longitude], url[index_longitude:url.find(",", index_longitude)])
+    return name, location
 
-    args = parser.parse_args()
-    if not args.all: crawler(args)
-    else:
-        for channel in ref:
-            for sort in ind:
-                args.channel = channel
-                args.sort_by = sort
-                crawler(args)
 
-    print(colored(datetime.now() - startTime, 'cyan'))
+def scraper_review(scraper, url, channel, sort_by):
+    # if args.place: print(scraper.get_account(url))
+    sortby_button_not_available = scraper.sort_by(url, ind[sort_by])
+    scraper.channeling(ref[channel])
+    
+    if sortby_button_not_available == 1: return list()
+    n = 0
+    list_reviews = list()
+    visited = 1
+    while n < MAX_REVIEW_COUNT_PER_URL:
+        print(colored('[Review ' + str(n) + ']', 'cyan'))
+        delta_l, spinner = scraper.scroll()
+        print(colored("differential of height after scrolling: " + str(delta_l), 'magenta'))
+        
+        reviews = scraper.get_reviews(n)
+        for r in reviews:
+            row_data = list(r.values())
+            row_data.append(url[:-1])
+            list_reviews.append(row_data)
+        n += len(reviews)
+        
+        if len(reviews) == 0:
+            visited += 1
+            if n >= 1500 or spinner or visited > 4:
+                break
+        else:
+            visited = 1
+    print(list_reviews)
+    return list_reviews
 
-# errors:
-# https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS/Errors/CORSDidNotSucceed

@@ -175,7 +175,7 @@ class GoogleMapsScraper:
         
         # section-review-action-menu
         try:    id_review = review.find('button', class_='ODSEW-ShBeI-JIbuQc-menu ODSEW-ShBeI-JIbuQc-menu-SfQLQb-title')['data-review-id']
-        except: id_review = "Not a google review"
+        except: id_review = review.find('span', class_="ODSEW-ShBeI-Hjleke-eEGnhe").text
 
         # section-review-title
         username = review.find('div', class_='ODSEW-ShBeI-title').find('span').text
