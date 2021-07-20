@@ -19,14 +19,36 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from termcolor import colored
 # from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from webdriver_manager.chrome import ChromeDriverManager
+# from webdriver_manager.chrome import ChromeDriverManager
 # from webdriver_manager.firefox import GeckoDriverManager
-# from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 GM_WEBPAGE = 'https://www.google.com/maps/'
 MAX_WAIT = 10
 MAX_RETRY = 5
 MAX_SCROLLS = 40
+
+sort_xpath_1 = '//button[@data-value=\'Sort\']'
+sort_xpath_2 = "(//div[@class=\'gm2-body-1 k5lwKb\'])[position()=2]"
+sort_menu_button_xpath = '//li[@role=\'menuitemradio\']'
+channel_xpath = "(//div[@class=\'gm2-body-1 k5lwKb\'])[position()=1]"
+channel_menu_button_xpath = '//li[@role=\'menuitemradio\']'
+get_reviews_xpath = 'ODSEW-ShBeI-content'                           #section-review-content
+section_review_id_review_button = 'ODSEW-ShBeI-JIbuQc-menu ODSEW-ShBeI-JIbuQc-menu-SfQLQb-title'
+section_review_id_review_span = "ODSEW-ShBeI-Hjleke-eEGnhe"
+section_review_username_div = 'ODSEW-ShBeI-title'
+section_review_review_text_span = 'ODSEW-ShBeI-text'
+section_review_rating_span = 'ODSEW-ShBeI-H1e3jb'
+section_review_relative_date = 'ODSEW-ShBeI-RgZmSc-date'
+section_review_abnormal_rate = 'ODSEW-ShBeI-RGxYjb-wcwwM'
+section_review_abnorma_date = 'ODSEW-ShBeI-RgZmSc-date-J42Xof-Hjleke'
+section_review_subtiltle = 'section-review-subtitle'
+section_review_no_reviews = 'ODSEW-ShBeI-VdSJob'
+expand_reviews_xpath = "(//button[@jsaction=\'pane.review.expandReview\'])[position()=1]"
+buggy_expand_button = "ODSEW-KoToPc-ShBeI.gXqMYb-hSRGPd"
+more_button_link_xpath = '//button[@jsaction=\'pane.review.expandReview\']'
+circle_loading_class = "wo1ice-loading-aZ2wEe"
+scrollbox_css_selector = 'div.section-layout.section-scrollbox.cYB2Ge-oHo7ed.cYB2Ge-ti6hGc'
 
 
 class GoogleMapsScraper:
@@ -58,10 +80,10 @@ class GoogleMapsScraper:
         while not clicked and tries < MAX_RETRY:
             try:
                 try:
-                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))
+                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, sort_xpath_1)))
                     self.type = 1
                 except:
-                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class=\'gm2-body-1 k5lwKb\'])[position()=2]")))
+                    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, sort_xpath_2)))
                     self.type = 2
                     
                 menu_bt.click()
@@ -81,7 +103,7 @@ class GoogleMapsScraper:
         clicked = False
         while not clicked and tries < MAX_RETRY:
             try:
-                recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ind]
+                recent_rating_bt = self.driver.find_elements_by_xpath(sort_menu_button_xpath)[ind]
                 clicked = True
             except:
                 tries += 1
@@ -104,7 +126,7 @@ class GoogleMapsScraper:
 
         while not clicked and tries < MAX_RETRY:
             try:
-                try:    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class=\'gm2-body-1 k5lwKb\'])[position()=1]")))
+                try:    menu_bt = wait.until(EC.element_to_be_clickable((By.XPATH, channel_xpath)))
                 except: pass
 
                 menu_bt.click()
@@ -122,7 +144,7 @@ class GoogleMapsScraper:
         # element of the list specified according to ref
         time.sleep(1)
         try:
-            recent_rating_bt = self.driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[ref]
+            recent_rating_bt = self.driver.find_elements_by_xpath(channel_menu_button_xpath)[ref]
             recent_rating_bt.click()
 
             # wait to load review (ajax call)
@@ -140,18 +162,18 @@ class GoogleMapsScraper:
         self.__expand_reviews()
         # parse reviews
         response = BeautifulSoup(self.driver.page_source, 'html.parser')
-        rblock = response.find_all('div', class_='ODSEW-ShBeI-content')
-        #section-review-content
+        rblock = response.find_all('div', class_=get_reviews_xpath)
+        
         parsed_reviews = []
         for index, review in enumerate(rblock):
             if index >= offset:
                 parsed_reviews.append(self.__parse(review))
                 print(self.__parse(review))
                 self.driver.execute_script("""
-                    var element = document.querySelector(".ODSEW-ShBeI-content");
+                    var element = document.querySelector(".{}");
                     if (element)
                         element.parentNode.removeChild(element);
-                    """)
+                    """.format(get_reviews_xpath))
         rblock.clear()
 
         return parsed_reviews
@@ -174,24 +196,24 @@ class GoogleMapsScraper:
         item = {}
         
         # section-review-action-menu
-        try:    id_review = review.find('button', class_='ODSEW-ShBeI-JIbuQc-menu ODSEW-ShBeI-JIbuQc-menu-SfQLQb-title')['data-review-id']
-        except: id_review = review.find('span', class_="ODSEW-ShBeI-Hjleke-eEGnhe").text
+        try:    id_review = review.find('button', class_=section_review_id_review_button)['data-review-id']
+        except: id_review = review.find('span', class_=section_review_id_review_span).text
 
         # section-review-title
-        username = review.find('div', class_='ODSEW-ShBeI-title').find('span').text
+        username = review.find('div', class_=section_review_username_div).find('span').text
         
         # section-review-text
-        try:                    review_text = self.__filter_string(review.find('span', class_='ODSEW-ShBeI-text').text)
+        try:                    review_text = self.__filter_string(review.find('span', class_=section_review_review_text_span).text)
         except Exception as e:  review_text = None
         # section-review-stars
         #
         # section-review-publish-date
         try:
-            rating = float(review.find('span', class_='ODSEW-ShBeI-H1e3jb')['aria-label'].split(' ')[1])
-            relative_date = review.find('span', class_='ODSEW-ShBeI-RgZmSc-date').text
+            rating = float(review.find('span', class_=section_review_rating_span)['aria-label'].split(' ')[1])
+            relative_date = review.find('span', class_=section_review_relative_date).text
         except:
-            __rating = review.find('span', class_='ODSEW-ShBeI-RGxYjb-wcwwM').text
-            relative_date = review.find('span', class_='ODSEW-ShBeI-RgZmSc-date-J42Xof-Hjleke').find('span').text
+            __rating = review.find('span', class_=section_review_abnormal_rate).text
+            relative_date = review.find('span', class_=section_review_abnorma_date).find('span').text
             __rating = __rating.split("/")
             numerator = float(__rating[0])
             denominator = float(__rating[1])
@@ -201,7 +223,7 @@ class GoogleMapsScraper:
         p = pdt.Calendar(c)
         absolute_date = datetime(*p.parse(relative_date)[0][:6])
         try:
-            n_reviews_photos = review.find('div', class_='section-review-subtitle').find_all('span')[1].text
+            n_reviews_photos = review.find('div', class_=section_review_subtiltle).find_all('span')[1].text
             metadata = n_reviews_photos.split('\xe3\x83\xbb')
             if len(metadata) == 3:
                 n_photos = int(metadata[2].split(' ')[0].replace('.', ''))
@@ -213,7 +235,7 @@ class GoogleMapsScraper:
 
         try:
             # section-review-subtitle
-            n_reviews = review.find('div', class_='ODSEW-ShBeI-VdSJob').find_all('span')[1].text.replace("・", "")
+            n_reviews = review.find('div', class_=section_review_no_reviews).find_all('span')[1].text.replace("・", "")
             print(colored(n_reviews, 'red'))
             n_reviews = n_reviews[:-8]
 
@@ -257,7 +279,7 @@ class GoogleMapsScraper:
         visited = 0
         while True:
             try:
-                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, "(//button[@jsaction=\'pane.review.expandReview\'])[position()=1]")))
+                links = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.XPATH, expand_reviews_xpath)))
                 print(colored(links, 'red'))
                 links.click()
                 if links == temp_link:
@@ -265,11 +287,11 @@ class GoogleMapsScraper:
                     if visited > 10:
                         # links.clear()
                         self.driver.execute_script("""
-                            var element = document.querySelector(".ODSEW-KoToPc-ShBeI.gXqMYb-hSRGPd");
+                            var element = document.querySelector(".{}");
                             element.click()
                             if (element)
                                 element.parentNode.removeChild(element);
-                            """)
+                            """.format(buggy_expand_button))
                         # raise Exception("")
                 else: visited = 1
                 temp_link = links
@@ -282,7 +304,7 @@ class GoogleMapsScraper:
         # allxGeDnJMl__text gm2-button-alt
         # <button ved="1i:1,t:18519,e:0,p:kPkcYIz-Dtql-QaL1YawDw:1969" jstcache="1202" jsaction="pane.reviewChart.moreReviews" class="gm2-button-alt jqnFjrOWMVU__button-blue" jsan="7.gm2-button-alt,7.jqnFjrOWMVU__button-blue,0.ved,22.jsaction">14 reviews</button>
         # <button aria-label="14 reviews" vet="3648" jsaction="pane.rating.moreReviews" jstcache="1010" class="widget-pane-link" jsan="7.widget-pane-link,0.aria-label,0.vet,0.jsaction">14 reviews</button>
-        links = self.driver.find_elements_by_xpath('//button[@jsaction=\'pane.review.expandReview\']')
+        links = self.driver.find_elements_by_xpath(more_button_link_xpath)
         print('LINKS HERE', links)
         for l in links:
             l.click()
@@ -303,7 +325,7 @@ class GoogleMapsScraper:
                 pass
             iter_index += 1
 
-            if not self.driver.find_elements_by_class_name("wo1ice-loading-aZ2wEe")[-1].is_displayed():
+            if not self.driver.find_elements_by_class_name(circle_loading_class)[-1].is_displayed():
                 #mapsConsumerUiSubviewSectionLoading__section-loading-spinner
                 print(colored("End of document!", 'yellow'))
                 spinner = True
@@ -316,10 +338,12 @@ class GoogleMapsScraper:
 
     def __scroll(self):
         #scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
-        scrollable_div = self.driver.find_element_by_css_selector('div.section-layout.section-scrollbox.cYB2Ge-oHo7ed.cYB2Ge-ti6hGc')
+        scrollable_div = self.driver.find_element_by_css_selector(scrollbox_css_selector)
         self.driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
         
         section_layout = self.driver.find_elements_by_class_name('section-layout')[-1]
+        try:    print(section_layout.size)
+        except: section_layout = self.driver.find_elements_by_class_name('section-layout')[-1]
         return section_layout.size['height']
         # self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 
@@ -352,8 +376,8 @@ class GoogleMapsScraper:
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-dev-shm-usage')
         # input_driver = webdriver.Firefox(executable_path=GeckoDriverManager().install(), options=options)
-        input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
-        # input_driver = webdriver.Edge(EdgeChromiumDriverManager().install())
+        # input_driver = webdriver.Chrome(ChromeDriverManager().install(), chrome_options=chrome_options)
+        input_driver = webdriver.Edge(EdgeChromiumDriverManager().install())
         print("Chrome Headless Browser Invoked")
 
         return input_driver

@@ -1,0 +1,21 @@
+//button[@data-value=\'Sort\']
+(//div[@class=\'gm2-body-1 k5lwKb\'])[position()=2]
+//li[@role=\'menuitemradio\']
+(//div[@class=\'gm2-body-1 k5lwKb\'])[position()=1]
+//li[@role=\'menuitemradio\']
+ODSEW-ShBeI-content
+ODSEW-ShBeI-JIbuQc-menu ODSEW-ShBeI-JIbuQc-menu-SfQLQb-title
+ODSEW-ShBeI-Hjleke-eEGnhe
+ODSEW-ShBeI-title
+ODSEW-ShBeI-text
+ODSEW-ShBeI-H1e3jb
+ODSEW-ShBeI-RgZmSc-date
+ODSEW-ShBeI-RGxYjb-wcwwM
+ODSEW-ShBeI-RgZmSc-date-J42Xof-Hjleke
+section-review-subtitle
+ODSEW-ShBeI-VdSJob
+(//button[@jsaction=\'pane.review.expandReview\'])[position()=1]
+ODSEW-KoToPc-ShBeI.gXqMYb-hSRGPd
+//button[@jsaction=\'pane.review.expandReview\']
+wo1ice-loading-aZ2wEe
+div.section-layout.section-scrollbox.cYB2Ge-oHo7ed.cYB2Ge-ti6hGc

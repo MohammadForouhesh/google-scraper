@@ -2,17 +2,19 @@ from datetime import datetime
 from PxPScraper import crawler, ref, ind
 import argparse
 from termcolor import colored
+import excelStorage
 
 
 def main(args):
     startTime = datetime.now()
-    if not args.all: crawler(args)
+    storage = excelStorage.ExcelStorage()
+    if not args.all: crawler(args, storage=storage)
     else:
         for channel in ref:
             for sort in ind:
                 args.channel = channel
                 args.sort_by = sort
-                crawler(args)
+                crawler(args, storage=storage)
 
     print(colored(datetime.now() - startTime, 'cyan'))
     

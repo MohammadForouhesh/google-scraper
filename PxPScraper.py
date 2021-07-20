@@ -21,7 +21,7 @@ HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "a
                    'n_review_user', 'n_photo_user', 'url_user', 'url_source']
 
 
-def crawler(args, storage):
+def crawler(args, storage=None):
     global MAX_REVIEW_COUNT_PER_URL
     MAX_REVIEW_COUNT_PER_URL = args.N
     with open(args.i, 'r') as urls_file:
