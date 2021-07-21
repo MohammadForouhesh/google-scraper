@@ -3,18 +3,20 @@ from PxPScraper import crawler, ref, ind
 import argparse
 from termcolor import colored
 import excelStorage
+from GoogleParameter import DynamicParameters
 
 
 def main(args):
     startTime = datetime.now()
     storage = excelStorage.ExcelStorage()
-    if not args.all: crawler(args, storage=storage)
+    parameters = DynamicParameters("parameters.txt")
+    if not args.all: crawler(args, params=parameters, storage=storage)
     else:
         for channel in ref:
             for sort in ind:
                 args.channel = channel
                 args.sort_by = sort
-                crawler(args, storage=storage)
+                crawler(args, params=parameters, storage=storage)
 
     print(colored(datetime.now() - startTime, 'cyan'))
     

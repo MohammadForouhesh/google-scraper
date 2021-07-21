@@ -8,7 +8,7 @@ import gc
 from excelStorage import PlaceInfo
 from termcolor import colored
 from PxPGoogleMaps import GoogleMapsScraper
-
+from GoogleParameter import DynamicParameters
 
 gc.enable()
 
@@ -21,12 +21,13 @@ HEADER_W_SOURCE = ['id_review', 'caption', 'relative_date', 'retrieval_date', "a
                    'n_review_user', 'n_photo_user', 'url_user', 'url_source']
 
 
-def crawler(args, storage=None):
+def crawler(args, params:DynamicParameters, storage=None):
     global MAX_REVIEW_COUNT_PER_URL
     MAX_REVIEW_COUNT_PER_URL = args.N
     with open(args.i, 'r') as urls_file:
         for url in urls_file:
-            with GoogleMapsScraper(debug=args.debug) as scraper:
+            params.update()
+            with GoogleMapsScraper(debug=args.debug, params=params) as scraper:
                 name, location = get_place_info(url)
                 
                 place_info = PlaceInfo(name, location, args.channel, args.sort_by)
@@ -70,7 +71,7 @@ def scraper_review(scraper, url, channel, sort_by):
         
         if len(reviews) == 0:
             visited += 1
-            if n >= 1500 or spinner or visited > 4:
+            if n >= 500 or spinner or visited > 4:
                 break
         else:
             visited = 1
