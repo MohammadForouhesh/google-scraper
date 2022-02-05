@@ -41,4 +41,4 @@ if __name__ == '__main__':
                         help='Add proxy file to rotate IP address dynamically.')
     
     args = parser.parse_args()
-    main(args);
+    main(args)
